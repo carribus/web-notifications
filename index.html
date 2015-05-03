@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Desktop Notifications Example</title>
+</head>
+<body>
+<p id="txtDisabledNotifications" style="display: none;color:red">You have disabled notifications for this site. Click on the site icon next to
+    its url and should should see "Notifications: Blocked by (you) with a button to the right. Click the button and
+    select
+    a different option to enable notifications (or at least the requesting of permissions for them)</p>
+<button id="btnRequestPermission">Request Notification Permission</button>
+<button id="btnShowNotification">Show a notification</button>
+<script>
+    var     btnRequest = document.getElementById('btnRequestPermission'),
+            btnShowNotification = document.getElementById('btnShowNotification'),
+            txtHelp = document.getElementById('txtDisabledNotifications'),
+
+            // sample notifications
+            notifications = [
+                {
+                    title: "Example simple notification",
+                    options: {
+                        body: "This notification will disappear after 5 seconds",
+                        icon: "/images/icon1.jpeg"
+                    },
+                    visibilityPeriod: 5000
+                },
+                {
+                    title: "Example simple notification 2",
+                    options: {
+                        body: "This notification will stay visible until it is dismissed"
+                    }
+                },
+                {
+                    title: "Clickable notification",
+                    options: {
+                        body: "Click me to go to google",
+                        icon: "/images/google.jpg"
+                    },
+                    visibilityPeriod: 3000,
+                    onclick: function(e) {
+                        window.open('http://www.google.com');
+                    }
+                },
+                {
+                    title: "Download Odobo Play NOW!",
+                    options: {
+                        body: "Click to go to the App store now...",
+                        icon: "/images/odoboplay.jpeg"
+                    },
+                    visibilityPeriod: 3000,
+                    onclick: function(e) {
+                        window.open('https://itunes.apple.com/gb/app/odobo-play-casino-games-for/id907077290?mt=8');
+                    }
+                }
+            ]
+
+
+    if (notificationsSupported()) {
+        updateViewBasedOnPermission();
+    }
+
+    btnRequest.addEventListener('click', function (e) {
+        if (notificationsSupported()) {
+            Notification.requestPermission(function () {
+                updateViewBasedOnPermission();
+            });
+        } else {
+            alert("Notifications don't seem to be supported");
+        }
+    });
+
+    btnShowNotification.addEventListener('click', function(e) {
+        var i = Math.floor(Math.random()*notifications.length);
+        console.log(notifications[i]);
+        createNotification(notifications[i].title,
+                notifications[i].options,
+                notifications[i].visibilityPeriod,
+                notifications[i].onclick
+        );
+    });
+
+    function updateViewBasedOnPermission() {
+        switch ( Notification.permission ) {
+            case    "denied": txtHelp.style.display = "block";
+                break;
+            case    "granted": btnRequest.style.display = "none";
+                break;
+        }
+    }
+
+    function notificationsSupported() {
+        return Notification !== 'undefined';
+    }
+
+    function createNotification(title, options, visibilityPeriod, onclick) {
+        var n = new Notification(title, options);
+        n.onclose = function(e) {
+            console.log('Notification closed:');
+            console.log(e.target);
+        }
+        if ( visibilityPeriod > 0 ) {
+            n.onshow = function() {
+                setTimeout(n.close.bind(n), visibilityPeriod);
+            }
+        }
+        if ( onclick ) {
+            n.onclick = onclick;
+        }
+    }
+
+</script>
+</body>
+</html>
